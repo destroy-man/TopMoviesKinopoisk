@@ -10,7 +10,6 @@ import ru.korobeynikov.topmovieskinopoisk.domain.MoviesRepository
 
 class MoviesRepositoryImpl(private val retrofit:Retrofit): MoviesRepository {
     override suspend fun getTopMovies():List<MovieListElementDomain>{
-
         val kinopoiskAPI=retrofit.create(KinopoiskAPI::class.java)
         val listMovies=kinopoiskAPI.getTopMovies().movies.map {
             MovieListElementDomain(

@@ -2,13 +2,11 @@ package ru.korobeynikov.topmovieskinopoisk.presentation
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
 import ru.korobeynikov.topmovieskinopoisk.domain.MoviesRepository
+import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.MovieListElement
 
 class MoviesViewModel(private val repository: MoviesRepository):ViewModel() {
 

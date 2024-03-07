@@ -1,4 +1,4 @@
-package ru.korobeynikov.topmovieskinopoisk.presentation
+package ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies
 
 data class MovieListElement(
     val id:Int,
