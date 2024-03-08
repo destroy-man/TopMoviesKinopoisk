@@ -8,5 +8,5 @@ import ru.korobeynikov.topmovieskinopoisk.domain.MoviesRepository
 @Module
 interface RepositoriesModule {
     @Binds
-    fun bindMoviesRepository(moviesRepositoryImpl:MoviesRepositoryImpl):MoviesRepository
+    fun bindMoviesRepository(moviesRepositoryImpl: MoviesRepositoryImpl): MoviesRepository
 }

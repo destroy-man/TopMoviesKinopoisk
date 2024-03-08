@@ -18,62 +18,61 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.presentation.MoviesViewModel
 
 @Composable
-fun TopListScreen(moviesViewModel: MoviesViewModel, navHostController: NavHostController){
+fun TopListScreen(moviesViewModel: MoviesViewModel, navHostController: NavHostController) {
     val listMovies by moviesViewModel.topMoviesState
     moviesViewModel.getTopMovies()
     LazyColumn(modifier = Modifier.padding(10.dp)) {
-        items(listMovies.size){
-            Movie(movie = listMovies[it], navHostController)
+        items(listMovies.size) {
+            Movie(movie = listMovies[it], navHostController, moviesViewModel)
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
 
 @Composable
-fun Movie(movie: MovieListElement, navHostController: NavHostController){
-    Row(
-        modifier = Modifier
-            .background(color = Color.White, shape = RoundedCornerShape(20.dp))
-            .fillMaxWidth()
-            .padding(10.dp)
-            .clickable {
-                //navHostController.navigate("movie/${movie.id}")
-                navHostController.navigate("movie/840152")
-            }
-    ) {
-        AsyncImage(
-            model = movie.image,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(60.dp)
-                .height(100.dp)
-                .clip(RoundedCornerShape(10.dp))
-        )
-        Spacer(modifier = Modifier.width(20.dp))
-        val genres=movie.genres.toString().replace("[","").replace("]","")
-        Column {
-            Text(
-                text = movie.name,
-                modifier = Modifier.padding(top = 20.dp),
-                fontSize = 16.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold
-            )
-            Text(text = "$genres (${movie.year})", modifier = Modifier.padding(top = 20.dp))
+fun Movie(
+    movie: MovieListElement,
+    navHostController: NavHostController,
+    moviesViewModel: MoviesViewModel,
+) = Row(
+    modifier = Modifier
+        .background(color = Color.White, shape = RoundedCornerShape(20.dp))
+        .fillMaxWidth()
+        .padding(10.dp)
+        .clickable {
+            moviesViewModel.getMovie(movie.id)
+            navHostController.navigate("movie")
         }
+) {
+    AsyncImage(
+        model = movie.image,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .width(60.dp)
+            .height(100.dp)
+            .clip(RoundedCornerShape(10.dp))
+    )
+    Spacer(modifier = Modifier.width(20.dp))
+    val genres = movie.genres.toString().replace("[", "").replace("]", "")
+    Column {
+        Text(
+            text = movie.name,
+            modifier = Modifier.padding(top = 20.dp),
+            fontSize = 16.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = "$genres (${movie.year})", modifier = Modifier.padding(top = 20.dp))
     }
 }
