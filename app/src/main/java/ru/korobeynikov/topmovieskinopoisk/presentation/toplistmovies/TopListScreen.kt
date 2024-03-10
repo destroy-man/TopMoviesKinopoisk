@@ -27,12 +27,12 @@ import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.presentation.MoviesViewModel
 
 @Composable
-fun TopListScreen(moviesViewModel: MoviesViewModel, navHostController: NavHostController) {
+fun TopListScreen(moviesViewModel: MoviesViewModel, navController: NavHostController) {
     val listMovies by moviesViewModel.topMoviesState
     moviesViewModel.getTopMovies()
     LazyColumn(modifier = Modifier.padding(10.dp)) {
         items(listMovies.size) {
-            Movie(movie = listMovies[it], navHostController, moviesViewModel)
+            Movie(movie = listMovies[it], navController)
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
@@ -41,16 +41,14 @@ fun TopListScreen(moviesViewModel: MoviesViewModel, navHostController: NavHostCo
 @Composable
 fun Movie(
     movie: MovieListElement,
-    navHostController: NavHostController,
-    moviesViewModel: MoviesViewModel,
+    navController: NavHostController,
 ) = Row(
     modifier = Modifier
         .background(color = Color.White, shape = RoundedCornerShape(20.dp))
         .fillMaxWidth()
         .padding(10.dp)
         .clickable {
-            moviesViewModel.getMovie(movie.id)
-            navHostController.navigate("movie")
+            navController.navigate("movie/${movie.id}")
         }
 ) {
     AsyncImage(
