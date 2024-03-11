@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -24,19 +23,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import ru.korobeynikov.topmovieskinopoisk.presentation.MoviesViewModel
 
 @Composable
-fun TopListScreen(moviesViewModel: MoviesViewModel, navController: NavHostController) {
-    val listMovies by moviesViewModel.topMoviesState
-    moviesViewModel.getTopMovies()
+fun TopListScreen(listMovies: List<MovieListElement>, navController: NavHostController) =
     LazyColumn(modifier = Modifier.padding(10.dp)) {
         items(listMovies.size) {
             Movie(movie = listMovies[it], navController)
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
-}
 
 @Composable
 fun Movie(

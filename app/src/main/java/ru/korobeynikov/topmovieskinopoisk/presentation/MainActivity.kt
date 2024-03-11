@@ -1,8 +1,5 @@
 package ru.korobeynikov.topmovieskinopoisk.presentation
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -42,46 +40,42 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.weight(1f)
                 ) {
                     composable("listMovies") {
-                        if (isInternetAvailable(this@MainActivity))
-                            TopListScreen(moviesViewModel, navController)
-                        else
+                        moviesViewModel.getTopMovies()
+                        val isError by moviesViewModel.topMoviesErrorState
+                        if (isError)
                             ErrorScreen(navController = navController, errorSource = "listMovies")
+                        else {
+                            val listMovies by moviesViewModel.topMoviesState
+                            TopListScreen(listMovies, navController)
+                        }
                     }
                     composable("movie/{id}", arguments = listOf(navArgument("id") {
                         type = NavType.StringType
                     })) {
                         val id = it.arguments?.getString("id")?.toInt()
                         if (id != null) {
-                            if (isInternetAvailable(this@MainActivity)) {
-                                moviesViewModel.getMovie(id)
-                                val movie = moviesViewModel.movieState.value
-                                MovieScreen(
-                                    movie,
-                                    Modifier.padding(start = 30.dp, bottom = 10.dp, end = 30.dp)
-                                )
-                            } else
+                            moviesViewModel.getMovie(id)
+                            val isError by moviesViewModel.movieErrorState
+                            if (isError)
                                 ErrorScreen(
                                     navController = navController,
                                     errorSource = "movie/$id"
                                 )
+                            else {
+                                val movie by moviesViewModel.movieState
+                                MovieScreen(
+                                    movie = movie,
+                                    modifier = Modifier.padding(
+                                        start = 30.dp,
+                                        bottom = 10.dp,
+                                        end = 30.dp
+                                    )
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-
-    private fun isInternetAvailable(context: Context?): Boolean {
-        val connectivityManager =
-            context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork = connectivityManager.activeNetwork ?: return false
-        val activeNetworkCapabilities =
-            connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-        return when {
-            activeNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-            activeNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-            activeNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-            else -> false
         }
     }
 }
