@@ -8,11 +8,11 @@ import ru.korobeynikov.topmovieskinopoisk.data.network.QueryMovies
 
 interface KinopoiskAPI {
 
-    @Headers("X-API-KEY: ca5545ad-57a0-49c8-9337-1cf3d1f87234")
+    @Headers("X-API-KEY: e30ffed0-76ab-4dd6-b41f-4c9da2b2735b")
     @GET("films/top?type=TOP_100_POPULAR_FILMS")
     suspend fun getTopMovies(): QueryMovies
 
-    @Headers("X-API-KEY: ca5545ad-57a0-49c8-9337-1cf3d1f87234")
+    @Headers("X-API-KEY: e30ffed0-76ab-4dd6-b41f-4c9da2b2735b")
     @GET("films/{id}")
     suspend fun getMovie(@Path("id") id: Int): MovieElementData
 }

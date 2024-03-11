@@ -23,7 +23,7 @@ class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
     private val _movieErrorState = mutableStateOf(false)
     val movieErrorState: State<Boolean> = _movieErrorState
 
-    fun getTopMovies() = viewModelScope.launch {
+    suspend fun getTopMovies() = viewModelScope.launch {
         try {
             _topMoviesState.value = repository.getTopMovies().map { movie ->
                 MovieListElement(
@@ -39,9 +39,9 @@ class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
         } catch (e: Exception) {
             _topMoviesErrorState.value = true
         }
-    }
+    }.join()
 
-    fun getMovie(id: Int) = viewModelScope.launch {
+    suspend fun getMovie(id: Int) = viewModelScope.launch {
         try {
             val movie = repository.getMovie(id)
             _movieState.value = MovieElement(
@@ -56,5 +56,5 @@ class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
         } catch (e: Exception) {
             _movieErrorState.value = true
         }
-    }
+    }.join()
 }
