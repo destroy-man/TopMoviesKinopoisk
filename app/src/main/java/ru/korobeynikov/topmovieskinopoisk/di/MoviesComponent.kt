@@ -4,7 +4,7 @@ import dagger.Component
 import ru.korobeynikov.topmovieskinopoisk.presentation.MainActivity
 
 @ApplicationScope
-@Component(modules = [MoviesViewModelModule::class, RepositoriesModule::class])
+@Component(modules = [NetworkModule::class, RepositoriesModule::class, DatabaseModule::class])
 interface MoviesComponent {
     fun injectMainActivity(mainActivity: MainActivity)
 }

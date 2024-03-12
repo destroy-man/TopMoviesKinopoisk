@@ -1,15 +1,15 @@
-package ru.korobeynikov.topmovieskinopoisk.presentation
+package ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.korobeynikov.topmovieskinopoisk.domain.MoviesRepository
+import ru.korobeynikov.topmovieskinopoisk.domain.NetworkRepository
 import ru.korobeynikov.topmovieskinopoisk.presentation.movie.MovieElement
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.MovieListElement
 
-class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
+class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewModel() {
 
     private val _topMoviesState = mutableStateOf(emptyList<MovieListElement>())
     val topMoviesState: State<List<MovieListElement>> = _topMoviesState
@@ -25,7 +25,7 @@ class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
 
     suspend fun getTopMovies() = viewModelScope.launch {
         try {
-            _topMoviesState.value = repository.getTopMovies().map { movie ->
+            _topMoviesState.value = networkRepository.getTopMovies().map { movie ->
                 MovieListElement(
                     movie.filmId,
                     movie.nameRu,
@@ -43,7 +43,7 @@ class MoviesViewModel(private val repository: MoviesRepository) : ViewModel() {
 
     suspend fun getMovie(id: Int) = viewModelScope.launch {
         try {
-            val movie = repository.getMovie(id)
+            val movie = networkRepository.getMovie(id)
             _movieState.value = MovieElement(
                 movie.posterUrl,
                 movie.nameRu,

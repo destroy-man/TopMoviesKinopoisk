@@ -8,6 +8,8 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        moviesComponent = DaggerMoviesComponent.create()
+        moviesComponent =
+            DaggerMoviesComponent.builder().databaseModule(DatabaseModule(applicationContext))
+                .build()
     }
 }

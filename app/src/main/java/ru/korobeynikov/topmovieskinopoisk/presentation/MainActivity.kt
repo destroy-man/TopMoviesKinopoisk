@@ -25,20 +25,30 @@ import androidx.navigation.navArgument
 import ru.korobeynikov.topmovieskinopoisk.di.App
 import ru.korobeynikov.topmovieskinopoisk.presentation.movie.MovieScreen
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.TopListScreen
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModelFactory
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModelFactory
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var moviesViewModelFactory: MoviesViewModelFactory
+    lateinit var networkViewModelFactory: NetworkViewModelFactory
+
+    @Inject
+    lateinit var databaseViewModelFactory: DatabaseViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         (application as App).moviesComponent.injectMainActivity(this)
         setContent {
             val configuration = LocalConfiguration.current
-            val moviesViewModel by viewModels<MoviesViewModel> {
-                moviesViewModelFactory
+            val networkViewModel by viewModels<NetworkViewModel> {
+                networkViewModelFactory
+            }
+            val databaseViewModel by viewModels<DatabaseViewModel> {
+                databaseViewModelFactory
             }
             Column(modifier = Modifier.fillMaxSize()) {
                 val navController = rememberNavController()
@@ -48,8 +58,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.weight(1f)
                 ) {
                     composable("listMovies") {
-                        ListMovies(
-                            moviesViewModel = moviesViewModel,
+                        ListMoviesNavigation(
+                            networkViewModel = networkViewModel,
                             navController = navController,
                             configuration = configuration
                         )
@@ -58,9 +68,9 @@ class MainActivity : ComponentActivity() {
                         type = NavType.StringType
                     })) {
                         val id = it.arguments?.getString("id")?.toInt()
-                        Movie(
+                        MovieNavigation(
                             id = id,
-                            moviesViewModel = moviesViewModel,
+                            networkViewModel = networkViewModel,
                             navController = navController,
                             configuration = configuration
                         )
@@ -71,19 +81,19 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ListMovies(
-        moviesViewModel: MoviesViewModel,
+    fun ListMoviesNavigation(
+        networkViewModel: NetworkViewModel,
         navController: NavHostController,
         configuration: Configuration,
     ) {
         LaunchedEffect(key1 = Unit) {
-            moviesViewModel.getTopMovies()
+            networkViewModel.getTopMovies()
         }
-        val isError by moviesViewModel.topMoviesErrorState
+        val isError by networkViewModel.topMoviesErrorState
         if (isError)
             ErrorScreen(navController = navController, errorSource = "listMovies")
         else {
-            val listMovies by moviesViewModel.topMoviesState
+            val listMovies by networkViewModel.topMoviesState
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
                 TopListScreen(listMovies, navController)
             else
@@ -94,17 +104,17 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun Movie(
+    fun MovieNavigation(
         id: Int?,
-        moviesViewModel: MoviesViewModel,
+        networkViewModel: NetworkViewModel,
         navController: NavHostController,
         configuration: Configuration,
     ) {
         if (id != null) {
             LaunchedEffect(key1 = Unit) {
-                moviesViewModel.getMovie(id)
+                networkViewModel.getMovie(id)
             }
-            val isError by moviesViewModel.movieErrorState
+            val isError by networkViewModel.movieErrorState
             if (isError)
                 ErrorScreen(
                     navController = navController,
@@ -112,18 +122,19 @@ class MainActivity : ComponentActivity() {
                 )
             else {
                 if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    val movie by moviesViewModel.movieState
+                    val movie by networkViewModel.movieState
                     MovieScreen(
                         movie = movie,
                         modifier = Modifier.padding(
                             start = 30.dp,
                             bottom = 10.dp,
                             end = 30.dp
-                        )
+                        ),
+                        navController = navController
                     )
                 } else {
-                    val listMovies by moviesViewModel.topMoviesState
-                    val movie by moviesViewModel.movieState
+                    val listMovies by networkViewModel.topMoviesState
+                    val movie by networkViewModel.movieState
                     Row {
                         Column(modifier = Modifier.weight(1f)) {
                             TopListScreen(listMovies, navController)
@@ -135,7 +146,8 @@ class MainActivity : ComponentActivity() {
                                     start = 30.dp,
                                     bottom = 10.dp,
                                     end = 30.dp
-                                )
+                                ),
+                                navController = navController
                             )
                         }
                     }

@@ -1,6 +1,6 @@
 package ru.korobeynikov.topmovieskinopoisk.domain
 
-interface MoviesRepository {
+interface NetworkRepository {
 
     suspend fun getTopMovies(): List<MovieListElementDomain>
 

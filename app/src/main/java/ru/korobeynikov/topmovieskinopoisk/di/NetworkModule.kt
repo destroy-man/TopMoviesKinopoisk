@@ -4,13 +4,13 @@ import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import ru.korobeynikov.topmovieskinopoisk.data.repositories.MoviesRepositoryImpl
+import ru.korobeynikov.topmovieskinopoisk.data.repositories.NetworkRepositoryImpl
 
 @Module
-class MoviesViewModelModule {
+class NetworkModule {
 
     @Provides
-    fun provideMoviesRepositoryImpl(retrofit: Retrofit) = MoviesRepositoryImpl(retrofit)
+    fun provideNetworkRepositoryImpl(retrofit: Retrofit) = NetworkRepositoryImpl(retrofit)
 
     @ApplicationScope
     @Provides

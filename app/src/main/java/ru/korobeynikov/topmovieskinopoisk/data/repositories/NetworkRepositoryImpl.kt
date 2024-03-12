@@ -4,9 +4,9 @@ import retrofit2.Retrofit
 import ru.korobeynikov.topmovieskinopoisk.data.webapi.KinopoiskAPI
 import ru.korobeynikov.topmovieskinopoisk.domain.MovieElementDomain
 import ru.korobeynikov.topmovieskinopoisk.domain.MovieListElementDomain
-import ru.korobeynikov.topmovieskinopoisk.domain.MoviesRepository
+import ru.korobeynikov.topmovieskinopoisk.domain.NetworkRepository
 
-class MoviesRepositoryImpl(private val retrofit: Retrofit) : MoviesRepository {
+class NetworkRepositoryImpl(private val retrofit: Retrofit) : NetworkRepository {
 
     override suspend fun getTopMovies(): List<MovieListElementDomain> {
         val kinopoiskAPI = retrofit.create(KinopoiskAPI::class.java)
