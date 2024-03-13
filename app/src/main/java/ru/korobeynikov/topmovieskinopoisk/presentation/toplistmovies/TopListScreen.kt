@@ -22,6 +22,8 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,67 +34,125 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.R
+import ru.korobeynikov.topmovieskinopoisk.presentation.ErrorScreen
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
 import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopListScreen(listMovies: List<MovieListElement>, navController: NavHostController) {
+fun TopListScreenPopular(
+    networkViewModel: NetworkViewModel = viewModel(),
+    databaseViewModel: DatabaseViewModel = viewModel(),
+    navController: NavHostController,
+) {
     Scaffold(topBar = {
-        TopAppBar(title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SearchBar(
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.search_icon),
-                            contentDescription = null,
-                            tint = blue,
-                        )
-                    },
-                    query = "",
-                    onQueryChange = {},
-                    onSearch = {},
-                    active = false,
-                    onActiveChange = {}
-                ) {
-
-                }
-            }
-        })
+        TopBarList()
     }, bottomBar = {
-        BottomAppBar(containerColor = Color.White) {
-            Row {
-                Button(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 10.dp),
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(containerColor = blue),
-                    enabled = false
-                ) {
-                    Text(text = "Популярное")
-                }
-                Button(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 10.dp),
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(containerColor = blue),
-                    enabled = true
-                ) {
-                    Text(text = "Избранное")
+        BottomBarList(navController = navController, isPopularList = true)
+    }) { innerPading ->
+        LaunchedEffect(key1 = Unit) {
+            networkViewModel.getTopMovies()
+        }
+        val isError by networkViewModel.topMoviesErrorState
+        if (isError)
+            ErrorScreen {
+                navController.navigate("listMovies/popular")
+            }
+        else {
+            val listMovies by networkViewModel.topMoviesState
+            Column(modifier = Modifier.padding(innerPading)) {
+                LazyColumn(modifier = Modifier.padding(10.dp)) {
+                    items(listMovies.size) {
+                        Movie(movie = listMovies[it], navController, databaseViewModel, true)
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TopListScreenSaved(
+    databaseViewModel: DatabaseViewModel = viewModel(),
+    navController: NavHostController,
+) {
+    Scaffold(topBar = {
+        TopBarList()
+    }, bottomBar = {
+        BottomBarList(navController = navController, isPopularList = false)
     }) { innerPading ->
+        LaunchedEffect(key1 = Unit) {
+            databaseViewModel.getSavedMovies()
+        }
+        val listMovies by databaseViewModel.savedMoviesState
         Column(modifier = Modifier.padding(innerPading)) {
             LazyColumn(modifier = Modifier.padding(10.dp)) {
                 items(listMovies.size) {
-                    Movie(movie = listMovies[it], navController)
+                    Movie(movie = listMovies[it], navController, databaseViewModel, false)
                     Spacer(modifier = Modifier.height(10.dp))
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBarList() {
+    TopAppBar(title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SearchBar(
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search_icon),
+                        contentDescription = null,
+                        tint = blue,
+                    )
+                },
+                query = "",
+                onQueryChange = {},
+                onSearch = {},
+                active = false,
+                onActiveChange = {}
+            ) {
+
+            }
+        }
+    })
+}
+
+@Composable
+fun BottomBarList(navController: NavHostController, isPopularList: Boolean) {
+    BottomAppBar(containerColor = Color.White) {
+        Row {
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 10.dp),
+                onClick = {
+                    navController.navigate("listMovies/popular")
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = blue),
+                enabled = !isPopularList
+            ) {
+                Text(text = "Популярное")
+            }
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 10.dp),
+                onClick = {
+                    navController.navigate("listMovies/saved")
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = blue),
+                enabled = isPopularList
+            ) {
+                Text(text = "Избранное")
             }
         }
     }
@@ -103,6 +163,8 @@ fun TopListScreen(listMovies: List<MovieListElement>, navController: NavHostCont
 fun Movie(
     movie: MovieListElement,
     navController: NavHostController,
+    databaseViewModel: DatabaseViewModel,
+    isPopularList: Boolean,
 ) = Row(
     modifier = Modifier
         .background(color = Color.White, shape = RoundedCornerShape(20.dp))
@@ -112,7 +174,14 @@ fun Movie(
             onClick = {
                 navController.navigate("movie/${movie.id}")
             }, onLongClick = {
-
+                databaseViewModel
+                    .addMovie(movie)
+                    .invokeOnCompletion {
+                        if (isPopularList)
+                            navController.navigate("listMovies/popular")
+                        else
+                            navController.navigate("listMovies/saved")
+                    }
             }
         )
 ) {
@@ -128,14 +197,24 @@ fun Movie(
     Spacer(modifier = Modifier.width(20.dp))
     val genres = movie.genres.toString().replace("[", "").replace("]", "")
     Column {
-        Text(
-            text = movie.name,
-            modifier = Modifier.padding(top = 20.dp),
-            fontSize = 16.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Bold
-        )
+        Row {
+            Text(
+                text = movie.name,
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 20.dp),
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            if (movie.isSaved)
+                Icon(
+                    painter = painterResource(id = R.drawable.saved_icon),
+                    contentDescription = null,
+                    tint = blue,
+                    modifier = Modifier.padding(top = 20.dp, start = 10.dp, end = 10.dp)
+                )
+        }
         Text(text = "$genres (${movie.year})", modifier = Modifier.padding(top = 20.dp))
     }
 }

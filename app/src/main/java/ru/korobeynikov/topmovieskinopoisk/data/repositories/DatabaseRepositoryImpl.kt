@@ -18,6 +18,19 @@ class DatabaseRepositoryImpl(private val kinopoiskDatabase: KinopoiskDatabase) :
         )
     }
 
+    override suspend fun getMovie(id: Int): MovieListElementDomain? {
+        val movie = kinopoiskDatabase.moviesDao().getMovie(id)
+        return if (movie != null)
+            MovieListElementDomain(
+                movie.id,
+                movie.name,
+                movie.genres,
+                movie.year,
+                movie.image
+            )
+        else null
+    }
+
     override suspend fun addMovie(movie: MovieListElementDomain) =
         kinopoiskDatabase.moviesDao().addMovie(
             MovieTable(

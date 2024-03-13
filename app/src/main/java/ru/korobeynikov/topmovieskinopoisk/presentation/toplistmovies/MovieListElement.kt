@@ -6,4 +6,5 @@ data class MovieListElement(
     val image: String,
     val genres: List<String>,
     val year: Int,
+    var isSaved: Boolean,
 )

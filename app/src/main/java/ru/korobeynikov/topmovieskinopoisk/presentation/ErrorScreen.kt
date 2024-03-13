@@ -14,12 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import ru.korobeynikov.topmovieskinopoisk.R
 import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
 @Composable
-fun ErrorScreen(navController: NavHostController, errorSource: String) = Column(
+fun ErrorScreen(onNavigateToSource: () -> Unit) = Column(
     modifier = Modifier.fillMaxSize(),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center
@@ -35,9 +34,10 @@ fun ErrorScreen(navController: NavHostController, errorSource: String) = Column(
         modifier = Modifier.padding(horizontal = 20.dp),
         color = blue
     )
-    Button(onClick = {
-        navController.navigate(errorSource)
-    }, colors = ButtonDefaults.buttonColors(containerColor = blue)) {
+    Button(
+        onClick = onNavigateToSource,
+        colors = ButtonDefaults.buttonColors(containerColor = blue)
+    ) {
         Text(text = "Повторить")
     }
 }

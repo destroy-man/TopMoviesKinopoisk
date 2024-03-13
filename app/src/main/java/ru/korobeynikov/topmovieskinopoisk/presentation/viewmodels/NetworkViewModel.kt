@@ -31,7 +31,8 @@ class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewM
                     movie.nameRu,
                     movie.posterUrl,
                     movie.genres,
-                    movie.year
+                    movie.year,
+                    false
                 )
             }
             if (_topMoviesErrorState.value)
