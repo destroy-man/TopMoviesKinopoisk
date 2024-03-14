@@ -26,19 +26,14 @@ import ru.korobeynikov.topmovieskinopoisk.presentation.movie.MovieScreen
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.MovieListElement
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.TopListScreenPopular
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.TopListScreenSaved
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModel
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModelFactory
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModelFactory
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.MoviesViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.MoviesViewModelFactory
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var networkViewModelFactory: NetworkViewModelFactory
-
-    @Inject
-    lateinit var databaseViewModelFactory: DatabaseViewModelFactory
+    lateinit var moviesViewModelFactory: MoviesViewModelFactory
 
     private var isPopularList = true
 
@@ -46,11 +41,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         (application as App).moviesComponent.injectMainActivity(this)
         setContent {
-            val networkViewModel by viewModels<NetworkViewModel> {
-                networkViewModelFactory
-            }
-            val databaseViewModel by viewModels<DatabaseViewModel> {
-                databaseViewModelFactory
+            val moviesViewModel by viewModels<MoviesViewModel> {
+                moviesViewModelFactory
             }
             val configuration = LocalConfiguration.current
             Column(modifier = Modifier.fillMaxSize()) {
@@ -67,8 +59,7 @@ class MainActivity : ComponentActivity() {
                         isPopularList = type == "popular"
                         ListMoviesNavigation(
                             navController,
-                            networkViewModel,
-                            databaseViewModel,
+                            moviesViewModel,
                             configuration
                         )
                     }
@@ -80,8 +71,7 @@ class MainActivity : ComponentActivity() {
                             MovieNavigation(
                                 id,
                                 navController,
-                                networkViewModel,
-                                databaseViewModel,
+                                moviesViewModel,
                                 configuration
                             )
                     }
@@ -93,47 +83,46 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun ListMoviesNavigation(
         navController: NavHostController,
-        networkViewModel: NetworkViewModel,
-        databaseViewModel: DatabaseViewModel,
+        moviesViewModel: MoviesViewModel,
         configuration: Configuration,
     ) {
         if (isPopularList) {
             LaunchedEffect(key1 = Unit) {
-                networkViewModel.getTopMovies()
+                moviesViewModel.getTopMovies()
             }
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-                TopListScreenPopular(navController, networkViewModel) {
-                    addMovie(databaseViewModel, it, navController)
+                TopListScreenPopular(navController, moviesViewModel) {
+                    addMovie(moviesViewModel, it, navController)
                 }
             else
                 Row(modifier = Modifier.fillMaxWidth(0.5f)) {
-                    TopListScreenPopular(navController, networkViewModel) {
-                        addMovie(databaseViewModel, it, navController)
+                    TopListScreenPopular(navController, moviesViewModel) {
+                        addMovie(moviesViewModel, it, navController)
                     }
                 }
         } else {
             LaunchedEffect(key1 = Unit) {
-                databaseViewModel.getSavedMovies()
+                moviesViewModel.getSavedMovies()
             }
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-                TopListScreenSaved(navController, databaseViewModel) {
-                    addMovie(databaseViewModel, it, navController)
+                TopListScreenSaved(navController, moviesViewModel) {
+                    addMovie(moviesViewModel, it, navController)
                 }
             else
                 Row(modifier = Modifier.fillMaxWidth(0.5f)) {
-                    TopListScreenSaved(navController, databaseViewModel) {
-                        addMovie(databaseViewModel, it, navController)
+                    TopListScreenSaved(navController, moviesViewModel) {
+                        addMovie(moviesViewModel, it, navController)
                     }
                 }
         }
     }
 
     private fun addMovie(
-        databaseViewModel: DatabaseViewModel,
+        moviesViewModel: MoviesViewModel,
         movie: MovieListElement,
         navController: NavHostController,
     ) {
-        databaseViewModel.addMovie(movie).invokeOnCompletion {
+        moviesViewModel.addMovie(movie).invokeOnCompletion {
             if (isPopularList)
                 navController.navigate("listMovies/popular")
             else
@@ -145,8 +134,7 @@ class MainActivity : ComponentActivity() {
     fun MovieNavigation(
         id: Int,
         navController: NavHostController,
-        networkViewModel: NetworkViewModel,
-        databaseViewModel: DatabaseViewModel,
+        moviesViewModel: MoviesViewModel,
         configuration: Configuration,
     ) {
         val modifier = Modifier.padding(start = 30.dp, bottom = 10.dp, end = 30.dp)
@@ -157,31 +145,31 @@ class MainActivity : ComponentActivity() {
             navController.navigate("movie/$id")
         }
         LaunchedEffect(key1 = Unit) {
-            networkViewModel.getMovie(id)
+            moviesViewModel.getMovie(id)
         }
         if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-            MovieScreen(networkViewModel, modifier, onNavigateBack, onNavigateToMovie)
+            MovieScreen(moviesViewModel, modifier, onNavigateBack, onNavigateToMovie)
         else {
             Row {
                 Column(modifier = Modifier.weight(1f)) {
                     if (isPopularList) {
                         LaunchedEffect(key1 = Unit) {
-                            networkViewModel.getTopMovies()
+                            moviesViewModel.getTopMovies()
                         }
-                        TopListScreenPopular(navController, networkViewModel) {
-                            addMovie(databaseViewModel, it, navController)
+                        TopListScreenPopular(navController, moviesViewModel) {
+                            addMovie(moviesViewModel, it, navController)
                         }
                     } else {
                         LaunchedEffect(key1 = Unit) {
-                            databaseViewModel.getSavedMovies()
+                            moviesViewModel.getSavedMovies()
                         }
-                        TopListScreenSaved(navController, databaseViewModel) {
-                            addMovie(databaseViewModel, it, navController)
+                        TopListScreenSaved(navController, moviesViewModel) {
+                            addMovie(moviesViewModel, it, navController)
                         }
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    MovieScreen(networkViewModel, modifier, onNavigateBack, onNavigateToMovie)
+                    MovieScreen(moviesViewModel, modifier, onNavigateBack, onNavigateToMovie)
                 }
             }
         }

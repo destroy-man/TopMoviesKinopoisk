@@ -37,14 +37,13 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.R
 import ru.korobeynikov.topmovieskinopoisk.presentation.ErrorScreen
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.DatabaseViewModel
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.MoviesViewModel
 import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
 @Composable
 fun TopListScreenPopular(
     navController: NavHostController,
-    networkViewModel: NetworkViewModel,
+    moviesViewModel: MoviesViewModel,
     onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
     Scaffold(topBar = {
@@ -52,13 +51,13 @@ fun TopListScreenPopular(
     }, bottomBar = {
         BottomBarList(navController, true)
     }) { innerPading ->
-        val isError by networkViewModel.topMoviesErrorState
+        val isError by moviesViewModel.topMoviesErrorState
         if (isError)
             ErrorScreen {
                 navController.navigate("listMovies/popular")
             }
         else {
-            val listMovies by networkViewModel.topMoviesState
+            val listMovies by moviesViewModel.topMoviesState
             Column(modifier = Modifier.padding(innerPading)) {
                 LazyColumn(modifier = Modifier.padding(10.dp)) {
                     items(listMovies.size) {
@@ -74,7 +73,7 @@ fun TopListScreenPopular(
 @Composable
 fun TopListScreenSaved(
     navController: NavHostController,
-    databaseViewModel: DatabaseViewModel,
+    moviesViewModel: MoviesViewModel,
     onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
     Scaffold(topBar = {
@@ -82,7 +81,7 @@ fun TopListScreenSaved(
     }, bottomBar = {
         BottomBarList(navController, false)
     }) { innerPading ->
-        val listMovies by databaseViewModel.savedMoviesState
+        val listMovies by moviesViewModel.savedMoviesState
         Column(modifier = Modifier.padding(innerPading)) {
             LazyColumn(modifier = Modifier.padding(10.dp)) {
                 items(listMovies.size) {

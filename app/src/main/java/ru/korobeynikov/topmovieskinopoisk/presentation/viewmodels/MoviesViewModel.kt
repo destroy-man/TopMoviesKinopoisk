@@ -5,11 +5,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import ru.korobeynikov.topmovieskinopoisk.domain.DatabaseRepository
+import ru.korobeynikov.topmovieskinopoisk.domain.MovieListElementDomain
 import ru.korobeynikov.topmovieskinopoisk.domain.NetworkRepository
 import ru.korobeynikov.topmovieskinopoisk.presentation.movie.MovieElement
 import ru.korobeynikov.topmovieskinopoisk.presentation.toplistmovies.MovieListElement
 
-class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewModel() {
+class MoviesViewModel(
+    private val networkRepository: NetworkRepository,
+    private val databaseRepository: DatabaseRepository,
+) : ViewModel() {
 
     private val _topMoviesState = mutableStateOf(emptyList<MovieListElement>())
     val topMoviesState: State<List<MovieListElement>> = _topMoviesState
@@ -23,6 +28,9 @@ class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewM
     private val _movieErrorState = mutableStateOf(false)
     val movieErrorState: State<Boolean> = _movieErrorState
 
+    private val _savedMoviesState = mutableStateOf(emptyList<MovieListElement>())
+    val savedMoviesState: State<List<MovieListElement>> = _savedMoviesState
+
     suspend fun getTopMovies() = viewModelScope.launch {
         try {
             _topMoviesState.value = networkRepository.getTopMovies().map { movie ->
@@ -32,7 +40,7 @@ class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewM
                     movie.posterUrl,
                     movie.genres,
                     movie.year,
-                    false
+                    databaseRepository.getMovie(movie.filmId) != null
                 )
             }
             if (_topMoviesErrorState.value)
@@ -58,4 +66,45 @@ class NetworkViewModel(private val networkRepository: NetworkRepository) : ViewM
             _movieErrorState.value = true
         }
     }.join()
+
+    fun getSavedMovies() = viewModelScope.launch {
+        _savedMoviesState.value = databaseRepository.getMovies().map {
+            MovieListElement(
+                it.filmId,
+                it.nameRu,
+                it.posterUrl,
+                it.genres,
+                it.year,
+                true
+            )
+        }
+    }
+
+    fun addMovie(movie: MovieListElement) = viewModelScope.launch {
+        if (databaseRepository.getMovie(movie.id) == null)
+            databaseRepository.addMovie(
+                MovieListElementDomain(
+                    movie.id,
+                    movie.name,
+                    movie.genres,
+                    movie.year,
+                    movie.image
+                )
+            )
+        else
+            deleteMovie(movie)
+    }
+
+    private fun deleteMovie(movie: MovieListElement) = viewModelScope.launch {
+        if (databaseRepository.getMovie(movie.id) != null)
+            databaseRepository.deleteMovie(
+                MovieListElementDomain(
+                    movie.id,
+                    movie.name,
+                    movie.genres,
+                    movie.year,
+                    movie.image
+                )
+            )
+    }
 }

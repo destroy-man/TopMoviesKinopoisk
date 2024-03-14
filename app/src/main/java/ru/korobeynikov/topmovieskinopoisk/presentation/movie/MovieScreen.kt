@@ -22,21 +22,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.presentation.ErrorScreen
-import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
+import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.MoviesViewModel
 import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
 @Composable
 fun MovieScreen(
-    networkViewModel: NetworkViewModel,
+    moviesViewModel: MoviesViewModel,
     modifier: Modifier,
     onNavigateBack: () -> Unit,
     onNavigateToMovie: () -> Unit,
 ) = Box {
-    val isError by networkViewModel.movieErrorState
+    val isError by moviesViewModel.movieErrorState
     if (isError)
         ErrorScreen(onNavigateToMovie)
     else {
-        val movie by networkViewModel.movieState
+        val movie by moviesViewModel.movieState
         Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
             AsyncImage(
                 model = movie.image,
