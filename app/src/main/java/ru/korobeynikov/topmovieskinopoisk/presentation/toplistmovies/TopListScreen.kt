@@ -22,7 +22,6 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.R
@@ -45,18 +43,15 @@ import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
 @Composable
 fun TopListScreenPopular(
-    networkViewModel: NetworkViewModel = viewModel(),
-    databaseViewModel: DatabaseViewModel = viewModel(),
     navController: NavHostController,
+    networkViewModel: NetworkViewModel,
+    onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
     Scaffold(topBar = {
         TopBarList()
     }, bottomBar = {
-        BottomBarList(navController = navController, isPopularList = true)
+        BottomBarList(navController, true)
     }) { innerPading ->
-        LaunchedEffect(key1 = Unit) {
-            networkViewModel.getTopMovies()
-        }
         val isError by networkViewModel.topMoviesErrorState
         if (isError)
             ErrorScreen {
@@ -67,7 +62,7 @@ fun TopListScreenPopular(
             Column(modifier = Modifier.padding(innerPading)) {
                 LazyColumn(modifier = Modifier.padding(10.dp)) {
                     items(listMovies.size) {
-                        Movie(movie = listMovies[it], navController, databaseViewModel, true)
+                        Movie(listMovies[it], navController, onAddMovie)
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
@@ -78,22 +73,20 @@ fun TopListScreenPopular(
 
 @Composable
 fun TopListScreenSaved(
-    databaseViewModel: DatabaseViewModel = viewModel(),
     navController: NavHostController,
+    databaseViewModel: DatabaseViewModel,
+    onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
     Scaffold(topBar = {
         TopBarList()
     }, bottomBar = {
-        BottomBarList(navController = navController, isPopularList = false)
+        BottomBarList(navController, false)
     }) { innerPading ->
-        LaunchedEffect(key1 = Unit) {
-            databaseViewModel.getSavedMovies()
-        }
         val listMovies by databaseViewModel.savedMoviesState
         Column(modifier = Modifier.padding(innerPading)) {
             LazyColumn(modifier = Modifier.padding(10.dp)) {
                 items(listMovies.size) {
-                    Movie(movie = listMovies[it], navController, databaseViewModel, false)
+                    Movie(listMovies[it], navController, onAddMovie)
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -163,8 +156,7 @@ fun BottomBarList(navController: NavHostController, isPopularList: Boolean) {
 fun Movie(
     movie: MovieListElement,
     navController: NavHostController,
-    databaseViewModel: DatabaseViewModel,
-    isPopularList: Boolean,
+    onAddMovie: (movie: MovieListElement) -> Unit,
 ) = Row(
     modifier = Modifier
         .background(color = Color.White, shape = RoundedCornerShape(20.dp))
@@ -174,14 +166,7 @@ fun Movie(
             onClick = {
                 navController.navigate("movie/${movie.id}")
             }, onLongClick = {
-                databaseViewModel
-                    .addMovie(movie)
-                    .invokeOnCompletion {
-                        if (isPopularList)
-                            navController.navigate("listMovies/popular")
-                        else
-                            navController.navigate("listMovies/saved")
-                    }
+                onAddMovie(movie)
             }
         )
 ) {

@@ -14,15 +14,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import ru.korobeynikov.topmovieskinopoisk.presentation.ErrorScreen
 import ru.korobeynikov.topmovieskinopoisk.presentation.viewmodels.NetworkViewModel
@@ -30,16 +27,11 @@ import ru.korobeynikov.topmovieskinopoisk.ui.theme.blue
 
 @Composable
 fun MovieScreen(
-    viewModel: ViewModel = viewModel(),
-    id: Int,
+    networkViewModel: NetworkViewModel,
     modifier: Modifier,
     onNavigateBack: () -> Unit,
     onNavigateToMovie: () -> Unit,
 ) = Box {
-    val networkViewModel = viewModel as NetworkViewModel
-    LaunchedEffect(key1 = Unit) {
-        networkViewModel.getMovie(id)
-    }
     val isError by networkViewModel.movieErrorState
     if (isError)
         ErrorScreen(onNavigateToMovie)
