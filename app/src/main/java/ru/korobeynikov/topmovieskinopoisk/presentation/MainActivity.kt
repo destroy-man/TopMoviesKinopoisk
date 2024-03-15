@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -41,6 +45,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         (application as App).moviesComponent.injectMainActivity(this)
         setContent {
+            var loading by remember {
+                mutableStateOf(true)
+            }
             val moviesViewModel by viewModels<MoviesViewModel> {
                 moviesViewModelFactory
             }
@@ -58,6 +65,7 @@ class MainActivity : ComponentActivity() {
                         LaunchedEffect(key1 = Unit) {
                             moviesViewModel.getTopMovies()
                             moviesViewModel.getSavedMovies()
+                            loading = false
                         }
                         val type = it.arguments?.getString("type") ?: "popular"
                         isPopularList = type == "popular"
@@ -70,6 +78,7 @@ class MainActivity : ComponentActivity() {
                     composable("movie/{id}", arguments = listOf(navArgument("id") {
                         type = NavType.StringType
                     })) {
+                        loading = false
                         LaunchedEffect(key1 = Unit) {
                             moviesViewModel.getTopMovies()
                             moviesViewModel.getSavedMovies()
@@ -85,6 +94,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            if (loading)
+                ProgressScreen()
         }
     }
 
