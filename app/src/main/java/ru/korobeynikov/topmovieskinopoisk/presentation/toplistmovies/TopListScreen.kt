@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -46,27 +49,25 @@ fun TopListScreenPopular(
     moviesViewModel: MoviesViewModel,
     onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
+    val listMovies by moviesViewModel.topMoviesState
+    val listSavedMovies by moviesViewModel.savedMoviesState
     Scaffold(topBar = {
-        TopBarList()
+        TopBarList(moviesViewModel, true)
     }, bottomBar = {
         BottomBarList(navController, true)
     }) { innerPading ->
         val isError by moviesViewModel.topMoviesErrorState
-        if (isError)
-            ErrorScreen {
-                navController.navigate("listMovies/popular")
-            }
-        else {
-            val listMovies by moviesViewModel.topMoviesState
-            Column(modifier = Modifier.padding(innerPading)) {
-                LazyColumn(modifier = Modifier.padding(10.dp)) {
-                    items(listMovies.size) {
-                        Movie(listMovies[it], navController, onAddMovie)
-                        Spacer(modifier = Modifier.height(10.dp))
-                    }
+        if (isError) {
+            if (listMovies.isNotEmpty())
+                ListMovies(innerPading, listMovies, navController, onAddMovie)
+            else if (listSavedMovies.isNotEmpty())
+                ListMovies(innerPading, listSavedMovies, navController, onAddMovie)
+            else
+                ErrorScreen {
+                    navController.navigate("listMovies/popular")
                 }
-            }
-        }
+        } else
+            ListMovies(innerPading, listMovies, navController, onAddMovie)
     }
 }
 
@@ -76,18 +77,28 @@ fun TopListScreenSaved(
     moviesViewModel: MoviesViewModel,
     onAddMovie: (movie: MovieListElement) -> Unit,
 ) {
+    val listMovies by moviesViewModel.savedMoviesState
     Scaffold(topBar = {
-        TopBarList()
+        TopBarList(moviesViewModel, false)
     }, bottomBar = {
         BottomBarList(navController, false)
     }) { innerPading ->
-        val listMovies by moviesViewModel.savedMoviesState
-        Column(modifier = Modifier.padding(innerPading)) {
-            LazyColumn(modifier = Modifier.padding(10.dp)) {
-                items(listMovies.size) {
-                    Movie(listMovies[it], navController, onAddMovie)
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
+        ListMovies(innerPading, listMovies = listMovies, navController = navController, onAddMovie)
+    }
+}
+
+@Composable
+fun ListMovies(
+    innerPading: PaddingValues,
+    listMovies: List<MovieListElement>,
+    navController: NavHostController,
+    onAddMovie: (movie: MovieListElement) -> Unit,
+) {
+    Column(modifier = Modifier.padding(innerPading)) {
+        LazyColumn(modifier = Modifier.padding(10.dp)) {
+            items(listMovies.size) {
+                Movie(listMovies[it], navController, onAddMovie)
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
@@ -95,26 +106,41 @@ fun TopListScreenSaved(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarList() {
+fun TopBarList(moviesViewModel: MoviesViewModel, isPopularList: Boolean) {
+    var textSearch by remember {
+        mutableStateOf("")
+    }
     TopAppBar(title = {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SearchBar(
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.search_icon),
-                        contentDescription = null,
-                        tint = blue,
-                    )
-                },
-                query = "",
-                onQueryChange = {},
-                onSearch = {},
-                active = false,
-                onActiveChange = {}
-            ) {
-
-            }
-        }
+        SearchBar(
+            placeholder = {
+                Text(text = "Поиск")
+            },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search_icon),
+                    contentDescription = null,
+                    tint = blue,
+                )
+            },
+            query = textSearch,
+            onQueryChange = {
+                textSearch = it
+                if (isPopularList) {
+                    val listMovies = moviesViewModel.listTopMovies.filter { movie ->
+                        movie.name.contains(textSearch, ignoreCase = true)
+                    }
+                    moviesViewModel.loadTopMoviesState(listMovies)
+                } else {
+                    val listMovies = moviesViewModel.listSavedMovies.filter { movie ->
+                        movie.name.contains(textSearch, ignoreCase = true)
+                    }
+                    moviesViewModel.loadSavedMoviesState(listMovies)
+                }
+            },
+            onSearch = {},
+            active = false,
+            onActiveChange = {}
+        ) {}
     })
 }
 

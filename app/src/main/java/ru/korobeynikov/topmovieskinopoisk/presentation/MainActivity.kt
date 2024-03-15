@@ -55,6 +55,10 @@ class MainActivity : ComponentActivity() {
                     composable("listMovies/{type}", arguments = listOf(navArgument("type") {
                         type = NavType.StringType
                     })) {
+                        LaunchedEffect(key1 = Unit) {
+                            moviesViewModel.getTopMovies()
+                            moviesViewModel.getSavedMovies()
+                        }
                         val type = it.arguments?.getString("type") ?: "popular"
                         isPopularList = type == "popular"
                         ListMoviesNavigation(
@@ -66,6 +70,10 @@ class MainActivity : ComponentActivity() {
                     composable("movie/{id}", arguments = listOf(navArgument("id") {
                         type = NavType.StringType
                     })) {
+                        LaunchedEffect(key1 = Unit) {
+                            moviesViewModel.getTopMovies()
+                            moviesViewModel.getSavedMovies()
+                        }
                         val id = it.arguments?.getString("id")?.toInt()
                         if (id != null)
                             MovieNavigation(
@@ -87,9 +95,6 @@ class MainActivity : ComponentActivity() {
         configuration: Configuration,
     ) {
         if (isPopularList) {
-            LaunchedEffect(key1 = Unit) {
-                moviesViewModel.getTopMovies()
-            }
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
                 TopListScreenPopular(navController, moviesViewModel) {
                     addMovie(moviesViewModel, it, navController)
@@ -101,9 +106,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
         } else {
-            LaunchedEffect(key1 = Unit) {
-                moviesViewModel.getSavedMovies()
-            }
             if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
                 TopListScreenSaved(navController, moviesViewModel) {
                     addMovie(moviesViewModel, it, navController)
@@ -122,6 +124,7 @@ class MainActivity : ComponentActivity() {
         movie: MovieListElement,
         navController: NavHostController,
     ) {
+        movie.isSaved = !movie.isSaved
         moviesViewModel.addMovie(movie).invokeOnCompletion {
             if (isPopularList)
                 navController.navigate("listMovies/popular")
@@ -149,29 +152,21 @@ class MainActivity : ComponentActivity() {
         }
         if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
             MovieScreen(moviesViewModel, modifier, onNavigateBack, onNavigateToMovie)
-        else {
+        else
             Row {
                 Column(modifier = Modifier.weight(1f)) {
-                    if (isPopularList) {
-                        LaunchedEffect(key1 = Unit) {
-                            moviesViewModel.getTopMovies()
-                        }
+                    if (isPopularList)
                         TopListScreenPopular(navController, moviesViewModel) {
                             addMovie(moviesViewModel, it, navController)
                         }
-                    } else {
-                        LaunchedEffect(key1 = Unit) {
-                            moviesViewModel.getSavedMovies()
-                        }
+                    else
                         TopListScreenSaved(navController, moviesViewModel) {
                             addMovie(moviesViewModel, it, navController)
                         }
-                    }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     MovieScreen(moviesViewModel, modifier, onNavigateBack, onNavigateToMovie)
                 }
             }
-        }
     }
 }

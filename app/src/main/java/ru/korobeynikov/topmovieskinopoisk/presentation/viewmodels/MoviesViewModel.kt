@@ -16,6 +16,9 @@ class MoviesViewModel(
     private val databaseRepository: DatabaseRepository,
 ) : ViewModel() {
 
+    val listTopMovies = ArrayList<MovieListElement>()
+    val listSavedMovies = ArrayList<MovieListElement>()
+
     private val _topMoviesState = mutableStateOf(emptyList<MovieListElement>())
     val topMoviesState: State<List<MovieListElement>> = _topMoviesState
 
@@ -45,6 +48,8 @@ class MoviesViewModel(
             }
             if (_topMoviesErrorState.value)
                 _topMoviesErrorState.value = false
+            listTopMovies.clear()
+            listTopMovies.addAll(_topMoviesState.value)
         } catch (e: Exception) {
             _topMoviesErrorState.value = true
         }
@@ -67,6 +72,10 @@ class MoviesViewModel(
         }
     }.join()
 
+    fun loadTopMoviesState(listMovies: List<MovieListElement>) {
+        _topMoviesState.value = listMovies
+    }
+
     fun getSavedMovies() = viewModelScope.launch {
         _savedMoviesState.value = databaseRepository.getMovies().map {
             MovieListElement(
@@ -78,6 +87,8 @@ class MoviesViewModel(
                 true
             )
         }
+        listSavedMovies.clear()
+        listSavedMovies.addAll(_savedMoviesState.value)
     }
 
     fun addMovie(movie: MovieListElement) = viewModelScope.launch {
@@ -106,5 +117,9 @@ class MoviesViewModel(
                     movie.image
                 )
             )
+    }
+
+    fun loadSavedMoviesState(listMovies: List<MovieListElement>) {
+        _savedMoviesState.value = listMovies
     }
 }
