@@ -14,3 +14,11 @@
 - если фильмов в разделе Избранное нет, то будет переход на экран ошибки, с возможностью сделать повторный запрос.
 
 Приложение написано на Kotlin, с испоьзованием следующих библиотек: Coil, Retrofit, Dagger2, Jetpack Compose, Navigation Compose, Room. В качестве архитектуры приложения использовалась Clean Architecture и шаблон проектирования MVVM.
+
+<div>
+  <img src="Screenshots/SectionPopular1.png" width="200" height="400">
+  <img src="Screenshots/SectionPopular2.png" width="200" height="400">
+  <img src="Screenshots/SectionFavorites.png" width="200" height="400">
+  <img src="Screenshots/MoviesSearch.png" width="200" height="400">
+  <img src="Screenshots/MovieDescription.png" width="200" height="400">
+</div>
