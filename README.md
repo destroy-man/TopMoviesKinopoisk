@@ -4,7 +4,7 @@ Application allows watch popular movies, received from https://www.kinopoisk.ru.
 - Popular - show popular movies, received from https://www.kinopoisk.ru.
 - Favorites - show movies, which store in application database.
 
-At long click movies adding/deleting from application database. If them not have, they add, if they have in database, then delete.
+At long click movies add/delete from application database. If them not have, they add, if they have in database, then delete.
 
 In sections Popular and Favorites realize movies search by movie name.
 
